@@ -83,7 +83,7 @@ cd <repository-name>
 
 ### Configure environment variables
 
-Copy `Backend/.env.example` to `Backend/.env` and `frontend/.env.example` to `frontend/.env.local`. Fill in each file's values locally. Do not commit populated env files. The root `.env.example` lists all supported variables together for reference.
+Copy `Backend/.env.example` to `Backend/.env` and `frontend/.env.example` to `frontend/.env.local`. Set `VITE_API_BASE_URL` to `http://127.0.0.1:8000` for local development or to your deployed backend URL in Render. Configure the same variable in the Render frontend service for production. Fill in each file's other values locally and do not commit populated env files. The root `.env.example` lists all supported variables together for reference.
 
 The backend requires a MongoDB connection string. Set `GEMINI_API_KEY` to enable AI reviews. The frontend Firebase variables are the Firebase web app configuration used by the client.
 
@@ -118,7 +118,7 @@ Vite serves the frontend at <http://localhost:3000>.
 | `MONGODB_URI` | Backend | MongoDB Atlas connection string |
 | `DATABASE_NAME` | Backend | MongoDB database name |
 | `GEMINI_API_KEY` | Backend | Google Gemini API access |
-| `VITE_API_BASE_URL` | Frontend | FastAPI base URL (defaults to `http://127.0.0.1:8000`) |
+| `VITE_API_BASE_URL` | Frontend | FastAPI base URL; set locally or in the Render frontend environment |
 | `VITE_FIREBASE_API_KEY` | Frontend | Firebase web app configuration |
 | `VITE_FIREBASE_AUTH_DOMAIN` | Frontend | Firebase web app configuration |
 | `VITE_FIREBASE_PROJECT_ID` | Frontend | Firebase web app configuration |
