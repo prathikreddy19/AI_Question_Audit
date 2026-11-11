@@ -84,6 +84,12 @@ An AI-powered web application for reviewing, auditing, and managing JEE/NEET pra
 
 ---
 
+## System Architecture
+
+![AI Question Audit system architecture](docs/images/system-architecture.png)
+
+---
+
 ## Project Structure
 
 ```text
