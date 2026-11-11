@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   CheckCircle2,
   XCircle,
@@ -6,22 +6,19 @@ import {
   Edit3,
   MessageSquare,
   Clock,
-  Shield,
-  Filter,
 } from 'lucide-react';
 import { formatRelativeTime, formatDate } from '../../utils/formatters';
 
-export function AuditTimeline({ logs = [] }) {
-  const [filterAction, setFilterAction] = useState('ALL');
-
-  const filteredLogs = logs.filter((log) => {
-    if (filterAction === 'ALL') return true;
-    if (filterAction === 'APPROVED') return log.action?.toLowerCase().includes('approved');
-    if (filterAction === 'REJECTED') return log.action?.toLowerCase().includes('rejected');
-    if (filterAction === 'AUTO') return log.action?.toLowerCase().includes('auto');
-    if (filterAction === 'REPORT') return log.action?.toLowerCase().includes('report');
-    return true;
-  });
+export function AuditTimeline({
+  logs = [],
+  filterAction = 'ALL',
+  onFilterActionChange = () => {},
+  page = 1,
+  total = 0,
+  limit = 20,
+  onPageChange = () => {},
+}) {
+  const filteredLogs = logs;
 
   const getActionIcon = (action = '', facultyName = '') => {
     const act = action.toLowerCase();
@@ -32,14 +29,14 @@ export function AuditTimeline({ logs = [] }) {
         </div>
       );
     }
-    if (act.includes('approve')) {
+    if (act.includes('approve') || act.includes('applied')) {
       return (
         <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center ring-4 ring-white shadow-xs">
           <CheckCircle2 className="w-4 h-4" />
         </div>
       );
     }
-    if (act.includes('reject')) {
+    if (act.includes('reject') || act.includes('ignored')) {
       return (
         <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center ring-4 ring-white shadow-xs">
           <XCircle className="w-4 h-4" />
@@ -78,7 +75,7 @@ export function AuditTimeline({ logs = [] }) {
           {['ALL', 'APPROVED', 'REJECTED', 'AUTO', 'REPORT'].map((tab) => (
             <button
               key={tab}
-              onClick={() => setFilterAction(tab)}
+              onClick={() => onFilterActionChange(tab)}
               className={`px-3 py-1 rounded-lg font-medium transition ${
                 filterAction === tab
                   ? 'bg-white text-indigo-700 shadow-xs font-semibold'
@@ -122,13 +119,17 @@ export function AuditTimeline({ logs = [] }) {
                   <div className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
                     <Clock className="w-3 h-3" />
                     <span title={formatDate(log.timestamp)}>
-                      {formatRelativeTime(log.timestamp)}
+                      {formatDate(log.timestamp)} · {formatRelativeTime(log.timestamp)}
                     </span>
                   </div>
                 </div>
 
                 <div className="text-sm font-semibold text-slate-800">
                   {log.action}
+                </div>
+
+                <div className="text-xs text-slate-500">
+                  Event: {(log.eventType || 'legacy_event').replaceAll('_', ' ')}
                 </div>
 
                 {log.notes && (
@@ -141,11 +142,39 @@ export function AuditTimeline({ logs = [] }) {
                   <span>Question ID: {log.questionId}</span>
                   <span>Entry: {log.id}</span>
                 </div>
+                {log.reportId && (
+                  <div className="text-[11px] text-slate-400 font-mono">
+                    Report ID: {log.reportId}
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <div className="flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-500">
+        <span>{total} events</span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={page <= 1}
+            onClick={() => onPageChange(page - 1)}
+            className="px-3 py-1.5 rounded-lg border border-slate-200 disabled:opacity-40"
+          >
+            Previous
+          </button>
+          <span>Page {page} of {Math.max(1, Math.ceil(total / limit))}</span>
+          <button
+            type="button"
+            disabled={page >= Math.ceil(total / limit)}
+            onClick={() => onPageChange(page + 1)}
+            className="px-3 py-1.5 rounded-lg border border-slate-200 disabled:opacity-40"
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

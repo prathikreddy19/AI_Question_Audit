@@ -6,6 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from fastapi import Depends
 from app.database.database import get_database
 from app.schemas.report_schema import ReportCreateSchema
+from app.services.audit_log_service import AuditLogService
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,7 @@ class ReportService:
     def __init__(self, db: AsyncIOMotorDatabase):
         self.db = db
         self.collection = db.reports
+        self.audit_log_service = AuditLogService(db)
 
     async def create_report(
         self, report_data: Union[ReportCreateSchema, Dict[str, Any]]
@@ -35,6 +37,13 @@ class ReportService:
 
         result = await self.collection.insert_one(doc)
         doc["_id"] = str(result.inserted_id)
+        await self.audit_log_service.record_event(
+            event_type="student_report_created",
+            question_id=str(doc.get("questionId", "")),
+            action="Student Report Created",
+            new_value=doc,
+            report_id=str(doc.get("reportId", "")) or None,
+        )
         return doc
 
     async def get_reports(self, limit: int = 100, skip: int = 0) -> List[Dict[str, Any]]:

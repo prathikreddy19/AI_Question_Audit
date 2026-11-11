@@ -24,6 +24,9 @@ export function AuditProvider({ children }) {
   const [queue, setQueue] = useState([]);
   const [stats, setStats] = useState(emptyStats);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [auditLogCount, setAuditLogCount] = useState(0);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditError, setAuditError] = useState(null);
   const [loading, setLoading] = useState({ questions: true, dashboard: true, queue: true });
   const [errors, setErrors] = useState({ questions: null, dashboard: null, queue: null });
   const [actionLoading, setActionLoading] = useState(false);
@@ -72,11 +75,19 @@ export function AuditProvider({ children }) {
     }
   }, []);
 
-  const loadAuditLogs = useCallback(async () => {
+  const loadAuditLogs = useCallback(async (params = { page: 1, limit: 100 }) => {
+    setAuditLoading(true);
+    setAuditError(null);
     try {
-      setAuditLogs(await auditService.getLogs());
-    } catch {
+      const result = await auditService.getLogs(params);
+      setAuditLogs(result.items);
+      setAuditLogCount(result.total || 0);
+    } catch (error) {
       setAuditLogs([]);
+      setAuditLogCount(0);
+      setAuditError(getApiErrorMessage(error));
+    } finally {
+      setAuditLoading(false);
     }
   }, []);
 
@@ -88,7 +99,7 @@ export function AuditProvider({ children }) {
     setIsAnalyzingPending(true);
     try {
       const summary = await facultyService.analyzePendingReports();
-      await reloadFacultyData();
+      await Promise.all([reloadFacultyData(), loadAuditLogs()]);
       if (summary.processed === 0) {
         showToast('No pending reports to analyze.', 'info');
       } else {
@@ -101,7 +112,7 @@ export function AuditProvider({ children }) {
     } finally {
       setIsAnalyzingPending(false);
     }
-  }, [reloadFacultyData, showToast]);
+  }, [loadAuditLogs, reloadFacultyData, showToast]);
 
   useEffect(() => {
     loadQuestions();
@@ -130,17 +141,17 @@ export function AuditProvider({ children }) {
   }, [loadAuditLogs, reloadFacultyData, showToast]);
 
   const approve = useCallback((reportId) => runAction(
-    () => facultyService.approve(reportId, user?.id || 'faculty'),
+    () => facultyService.approve(reportId, user?.email || user?.id || 'faculty'),
     'Review approved and saved.', true,
   ), [runAction, user]);
 
   const reject = useCallback((reportId, reason) => runAction(
-    () => facultyService.reject(reportId, reason, user?.id || 'faculty'),
+    () => facultyService.reject(reportId, reason, user?.email || user?.id || 'faculty'),
     'Review rejected and saved.',
   ), [runAction, user]);
 
   const editAndApprove = useCallback((reportId, changes) => runAction(
-    () => facultyService.edit(reportId, changes, user?.id || 'faculty'),
+    () => facultyService.edit(reportId, changes, user?.email || user?.id || 'faculty'),
     'Edited review saved and approved.', true,
   ), [runAction, user]);
 
@@ -179,10 +190,10 @@ export function AuditProvider({ children }) {
         return report;
       }
     } finally {
-      if (report) await Promise.allSettled([loadQuestions(), reloadFacultyData()]);
+      if (report) await Promise.allSettled([loadQuestions(), reloadFacultyData(), loadAuditLogs()]);
       setActionLoading(false);
     }
-  }, [loadQuestions, reloadFacultyData, showToast, user]);
+  }, [loadAuditLogs, loadQuestions, reloadFacultyData, showToast, user]);
 
   const getQuestion = useCallback((id) => questions.find(
     (question) => question.id === String(id) || question.qid === String(id)
@@ -193,6 +204,10 @@ export function AuditProvider({ children }) {
     queue,
     stats,
     auditLogs,
+    auditLogCount,
+    auditLoading,
+    auditError,
+    loadAuditLogs,
     taxonomy,
     loading,
     errors,
@@ -211,7 +226,8 @@ export function AuditProvider({ children }) {
     refreshFacultyData: reloadFacultyData,
     showToast,
     toast,
-  }), [questions, queue, stats, auditLogs, loading, errors, actionLoading, isAnalyzingPending,
+  }), [questions, queue, stats, auditLogs, auditLogCount, auditLoading, auditError, loadAuditLogs,
+    loading, errors, actionLoading, isAnalyzingPending,
     approve, reject, editAndApprove, analyzePendingReports, submitReport, getQuestion, loadQuestions, loadDashboard, loadQueue,
     reloadFacultyData, showToast, toast]);
 

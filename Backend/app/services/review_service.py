@@ -10,6 +10,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.database.database import get_database
 from app.services import ai_service, taxonomy_service, validation_service
+from app.services.audit_log_service import AuditLogService
 from app.services.prompt_service import build_review_prompt
 from app.services.question_service import QuestionService
 from app.services.report_service import ReportService
@@ -27,6 +28,7 @@ class ReviewService:
         self.report_service = ReportService(db)
         self.question_service = QuestionService(db)
         self.ai_reviews = db.ai_reviews
+        self.audit_log_service = AuditLogService(db)
 
     async def _get_report(self, report_id: str) -> Optional[Dict[str, Any]]:
         """Find one report through the existing report service interface."""
@@ -142,6 +144,16 @@ class ReviewService:
                 review = self._fallback(report, validation.errors)
 
             saved = await self._save_review(review)
+            if review.get("validation_passed") and review.get("route") == "auto_apply":
+                await self.audit_log_service.record_event(
+                    event_type="auto_applied",
+                    question_id=question_id,
+                    action="Auto Applied",
+                    previous_value={"edit": None},
+                    new_value={"edit": review.get("edit"), "verdict": review.get("verdict")},
+                    report_id=report_id,
+                    ai_suggestion_id=saved.get("_id"),
+                )
             logger.info("Mongo saved review reportId=%s", report_id)
             logger.info("Review finished reportId=%s", report_id)
             return saved

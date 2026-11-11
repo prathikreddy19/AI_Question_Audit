@@ -172,7 +172,7 @@ export function FacultyDashboard() {
 
             <div className="space-y-2.5">
               {auditLogs.length === 0 && (
-                <p className="text-xs text-slate-500">Audit log listing is not available from the backend yet.</p>
+                <p className="text-xs text-slate-500">No audit activity has been recorded yet.</p>
               )}
               {auditLogs.slice(0, 4).map((log) => (
                 <div

@@ -11,6 +11,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo import ReturnDocument
 
 from app.database.database import get_database
+from app.services.audit_log_service import AuditLogService
 from app.services.question_service import QuestionService
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ class FacultyService:
         self.reviews = db.ai_reviews
         self.reports = db.reports
         self.questions = db.questions
-        self.audit_logs = db.audit_logs
+        self.audit_log_service = AuditLogService(db)
         self.question_service = QuestionService(db)
 
     @staticmethod
@@ -59,23 +60,22 @@ class FacultyService:
         report_id: str,
         question_id: str,
         faculty_id: str,
+        event_type: str,
         action: str,
         before: Dict[str, Any],
         after: Dict[str, Any],
+        ai_suggestion_id: Optional[str] = None,
     ) -> None:
-        entry = {
-            "reportId": report_id,
-            "questionId": question_id,
-            "facultyId": faculty_id,
-            "action": action,
-            "before": before,
-            "after": after,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-        try:
-            await self.audit_logs.insert_one(entry)
-        except Exception as exc:
-            raise self._database_error("write audit log", exc) from exc
+        await self.audit_log_service.record_event(
+            event_type=event_type,
+            question_id=question_id,
+            faculty_email=faculty_id,
+            action=action,
+            previous_value=before,
+            new_value=after,
+            report_id=report_id,
+            ai_suggestion_id=ai_suggestion_id,
+        )
 
     @staticmethod
     def _pending_review_filter(review: Dict[str, Any]) -> Dict[str, Any]:
@@ -270,8 +270,16 @@ class FacultyService:
         except Exception as exc:
             raise self._database_error("approve review", exc) from exc
         after = {"review": updated_review, "question": after_question}
-        await self._audit(report_id=report_id, question_id=str(review["questionId"]), faculty_id=faculty_id,
-                          action="approve", before=before, after=after)
+        await self._audit(
+            report_id=report_id,
+            question_id=str(review["questionId"]),
+            faculty_id=faculty_id,
+            event_type="question_approved",
+            action="Question Approved — AI Suggestion Applied" if edit else "Question Approved",
+            before=before,
+            after=after,
+            ai_suggestion_id=str(review.get("_id", "")) or None,
+        )
         if updated_review.get("_id") is not None:
             updated_review["_id"] = str(updated_review["_id"])
         logger.info("Faculty review approved reportId=%s", report_id)
@@ -297,8 +305,16 @@ class FacultyService:
             raise
         except Exception as exc:
             raise self._database_error("reject review", exc) from exc
-        await self._audit(report_id=report_id, question_id=str(review["questionId"]), faculty_id=faculty_id,
-                          action="reject", before=before, after=after)
+        await self._audit(
+            report_id=report_id,
+            question_id=str(review["questionId"]),
+            faculty_id=faculty_id,
+            event_type="question_rejected",
+            action="Question Rejected — AI Suggestion Ignored",
+            before=before,
+            after=after,
+            ai_suggestion_id=str(review.get("_id", "")) or None,
+        )
         if after.get("_id") is not None:
             after["_id"] = str(after["_id"])
         logger.info("Faculty review rejected reportId=%s", report_id)
@@ -341,8 +357,16 @@ class FacultyService:
             raise self._database_error("edit review", exc) from exc
         if after is None or after.get("status") != "approved":
             raise HTTPException(status_code=409, detail="Review changed before edit could be saved.")
-        await self._audit(report_id=report_id, question_id=str(review["questionId"]), faculty_id=faculty_id,
-                          action="edit", before=before, after={"review": after, "question": after_question})
+        await self._audit(
+            report_id=report_id,
+            question_id=str(review["questionId"]),
+            faculty_id=faculty_id,
+            event_type="manual_edit",
+            action="Manual Edit",
+            before=before,
+            after={"review": after, "question": after_question},
+            ai_suggestion_id=str(review.get("_id", "")) or None,
+        )
         if after.get("_id") is not None:
             after["_id"] = str(after["_id"])
         logger.info("Faculty review edited reportId=%s", report_id)

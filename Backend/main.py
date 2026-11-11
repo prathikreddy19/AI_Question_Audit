@@ -7,6 +7,7 @@ from app.api.questions import router as questions_router
 from app.api.reports import router as reports_router
 from app.api.ai import router as ai_router
 from app.api.faculty import router as faculty_router
+from app.api.audit import router as audit_router
 
 # Configure logging
 logging.basicConfig(
@@ -58,6 +59,7 @@ app.include_router(questions_router)
 app.include_router(reports_router)
 app.include_router(ai_router)
 app.include_router(faculty_router)
+app.include_router(audit_router)
 
 
 @app.get("/", tags=["Health"])
