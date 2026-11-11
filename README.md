@@ -1,162 +1,339 @@
-# AI Question Audit System
+# AI Question Audit
 
-An AI-powered faculty review platform that helps faculty audit examination questions and student-submitted error reports using Google Gemini. Faculty can review AI suggestions, approve or reject them, and track review actions through audit logs.
+An AI-powered web application for reviewing, auditing, and managing JEE/NEET practice questions. The platform enables students to report issues in questions, allows faculty to review reports, and leverages Google's Gemini AI to assist in analyzing reported questions.
+
+---
+
+## Live Demo
+
+### Frontend
+
+<https://ai-question-audit-1.onrender.com>
+
+### Backend API
+
+<https://ai-question-audit.onrender.com>
+
+### API Documentation (Swagger)
+
+<https://ai-question-audit.onrender.com/docs>
+
+---
 
 ## Features
 
-### Authentication
+### Student Module
 
-- Firebase Authentication
-- Email and password login
-- Protected student and faculty views
+- Secure login
+- Browse all practice questions
+- Search questions
+- Filter by subject
+- Filter by question type
+- Report incorrect questions
+- View report submission status
 
-### Question Management
+### Faculty Module
 
-- Browse and search questions
-- Filter by subject and question type
-- Paginated question and report APIs
+- Faculty authentication
+- Dashboard with report statistics
+- View pending reports
+- Approve reports
+- Reject reports
+- AI-assisted report analysis
+- Manage question quality
 
-### AI Review
+### AI Integration
 
-- Google Gemini powered report analysis
-- Issue categorization and suggested corrections
-- Confidence scoring and faculty review routing
-- Analyze only reports without an existing AI review
+- Gemini AI powered report analysis
+- Automated issue explanation
+- Suggested resolutions
+- AI-assisted faculty review
 
-### Faculty Console
-
-- Dashboard and review queue
-- Approve, reject, or edit AI suggestions
-- Audit logging for faculty decisions
-
-### Reports
-
-- Student error report submission
-- AI review history stored in MongoDB
-- Review and audit history APIs
+---
 
 ## Tech Stack
 
-**Frontend:** React, Vite, TailwindCSS
+### Frontend
 
-**Backend:** FastAPI, Python, Pydantic
+- React
+- Vite
+- React Router
+- Axios
+- CSS
 
-**Database:** MongoDB Atlas, Motor async driver
+### Backend
 
-**Authentication:** Firebase Authentication
+- FastAPI
+- Python
+- Motor (Async MongoDB Driver)
+- Pydantic
+- Uvicorn
 
-**AI:** Google Gemini via the `google-genai` SDK
+### Database
+
+- MongoDB Atlas
+
+### AI
+
+- Google Gemini API
+
+### Deployment
+
+- Render (Backend)
+- Render Static Site (Frontend)
+
+---
 
 ## Project Structure
 
 ```text
-Backend/
-├── app/
-│   ├── api/
-│   ├── core/
-│   ├── data/
-│   ├── database/
-│   ├── middleware/
-│   ├── models/
-│   ├── schemas/
-│   ├── services/
-│   └── utils/
-├── main.py
-├── requirements.txt
-└── README_BACKEND.md
-
-frontend/
-├── public/
-├── src/
-├── package.json
-└── vite.config.js
+AI_Question_Audit/
+├── Backend/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── core/
+│   │   ├── data/
+│   │   ├── database/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   └── utils/
+│   ├── main.py
+│   ├── requirements.txt
+│   └── .env.example
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── hooks/
+│   │   └── App.jsx
+│   ├── package.json
+│   └── .env.example
+├── README.md
+└── LICENSE
 ```
+
+---
 
 ## Installation
 
-### Clone the repository
+### Clone Repository
 
 ```bash
-git clone <repository-url>
-cd <repository-name>
+git clone https://github.com/prathikreddy19/AI_Question_Audit.git
+cd AI_Question_Audit
 ```
 
-### Configure environment variables
+---
 
-Copy `Backend/.env.example` to `Backend/.env` and `frontend/.env.example` to `frontend/.env.local`. Set `VITE_API_BASE_URL` to `http://127.0.0.1:8000` for local development or to your deployed backend URL in Render. Configure the same variable in the Render frontend service for production. Fill in each file's other values locally and do not commit populated env files. The root `.env.example` lists all supported variables together for reference.
+## Backend Setup
 
-The backend requires a MongoDB connection string. Set `GEMINI_API_KEY` to enable AI reviews. The frontend Firebase variables are the Firebase web app configuration used by the client.
+```bash
+cd Backend
+python -m venv venv
+```
 
-### Backend
+macOS / Linux:
+
+```bash
+source venv/bin/activate
+```
+
+Windows PowerShell:
 
 ```powershell
-cd Backend
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+venv\Scripts\Activate.ps1
 ```
 
-The API is available at <http://127.0.0.1:8000>. Interactive API documentation is at <http://127.0.0.1:8000/docs>.
+Install dependencies:
 
-### Frontend
+```bash
+pip install -r requirements.txt
+```
 
-In a second terminal:
+Create `Backend/.env` using `Backend/.env.example` as a template:
+
+```env
+MONGODB_URI=your_mongodb_connection_string
+DATABASE_NAME=AI_Question_Audit
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+Run backend from the `Backend/` directory:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Backend: <http://127.0.0.1:8000>
+
+Swagger: <http://127.0.0.1:8000/docs>
+
+---
+
+## Frontend Setup
+
+In a separate terminal, from the repository root:
 
 ```bash
 cd frontend
 npm install
+```
+
+Create `frontend/.env.local` using `frontend/.env.example` as a template. Set the API URL to the local backend for development or the deployed backend for production:
+
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8000
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_firebase_app_id
+```
+
+Run the frontend:
+
+```bash
 npm run dev
 ```
 
 Vite serves the frontend at <http://localhost:3000>.
 
+For Render, configure `VITE_API_BASE_URL` in the frontend service environment with the deployed backend URL, then redeploy the frontend.
+
+---
+
 ## Environment Variables
 
-| Variable | Used by | Purpose |
-|---|---|---|
-| `MONGODB_URI` | Backend | MongoDB Atlas connection string |
-| `DATABASE_NAME` | Backend | MongoDB database name |
-| `GEMINI_API_KEY` | Backend | Google Gemini API access |
-| `VITE_API_BASE_URL` | Frontend | FastAPI base URL; set locally or in the Render frontend environment |
-| `VITE_FIREBASE_API_KEY` | Frontend | Firebase web app configuration |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Frontend | Firebase web app configuration |
-| `VITE_FIREBASE_PROJECT_ID` | Frontend | Firebase web app configuration |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Frontend | Firebase web app configuration |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Frontend | Firebase web app configuration |
-| `VITE_FIREBASE_APP_ID` | Frontend | Firebase web app configuration |
+### Backend
 
-## Workflow
+```env
+MONGODB_URI=
+DATABASE_NAME=AI_Question_Audit
+GEMINI_API_KEY=
+```
 
-Student submits a report → the AI review pipeline analyzes new reports → faculty reviews and decides on suggestions → the decision is saved and an audit entry is recorded.
+### Frontend
 
-## API
+```env
+VITE_API_BASE_URL=
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+```
 
-Common endpoints include:
+Never commit populated environment files. Use the `.env.example` templates for variable names and setup guidance.
 
-- `GET /questions`
-- `GET /reports`
-- `POST /reports`
-- `POST /ai/review/{reportId}`
-- `POST /ai/analyze-pending`
-- `GET /faculty/dashboard`
-- `GET /faculty/reports`
+---
 
-See the Swagger UI at `/docs` for the full endpoint list and request schemas.
+## API Endpoints
+
+### Authentication
+
+- Login through Firebase Authentication
+
+### Questions
+
+- `GET /questions` — list questions
+- Search and filter questions using query parameters
+
+### Reports
+
+- `POST /reports` — submit a report
+- `GET /reports` — list reports
+- `GET /faculty/reports` — view the faculty review queue
+- `POST /faculty/approve/{reportId}` — approve a review
+- `POST /faculty/reject/{reportId}` — reject a review
+
+### AI
+
+- `POST /ai/review/{reportId}` — review one report
+- `POST /ai/analyze-pending` — analyze reports without an existing AI review
+
+Full API documentation is available at <https://ai-question-audit.onrender.com/docs>.
+
+---
 
 ## Screenshots
 
-Add product screenshots here.
+### Login
+
+_Add screenshot_
+
+### Student Dashboard
+
+_Add screenshot_
+
+### Faculty Dashboard
+
+_Add screenshot_
+
+### AI Review
+
+_Add screenshot_
+
+---
+
+## Deployment
+
+### Backend
+
+- FastAPI
+- Render Web Service
+
+### Frontend
+
+- React + Vite
+- Render Static Site
+
+### Database
+
+- MongoDB Atlas
+
+---
+
+## Design Highlights
+
+- Clean separation of frontend and backend
+- RESTful API architecture
+- Async database operations
+- AI-assisted report analysis
+- Responsive UI
+- Modular codebase
+- Environment variable configuration
+- Production deployment on Render
+
+---
 
 ## Future Improvements
 
-- Bulk review optimization
-- Dashboard analytics
-- Review history filters
-- Role-based access control
-- Report exports
-- Email notifications
+- JWT Authentication
+- Role-Based Access Control
+- Email Notifications
+- Analytics Dashboard
+- Pagination
+- Advanced Search
+- Image Upload Support
+- Question Version History
+- Unit & Integration Tests
+- CI/CD Pipeline
+
+---
+
+## Author
+
+**Prathik Reddy**
+
+GitHub: <https://github.com/prathikreddy19>
+
+---
 
 ## License
 
-This project is developed for educational and demonstration purposes.
+This project is licensed under the MIT License.
