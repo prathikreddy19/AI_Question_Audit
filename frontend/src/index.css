@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 243 75% 59%; /* Indigo-600 */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 243 75% 59%;
+
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom MathML rendering enhancements */
+math {
+  font-family: 'Cambria Math', 'Latin Modern Math', 'STIX Two Math', 'Times New Roman', serif;
+  font-size: 1.05em;
+  line-height: 1.2;
+}
+
+math mfrac {
+  padding: 0 2px;
+}
+
+math msup, math msub {
+  font-size: 0.85em;
+}
+
+/* Question HTML reset styling */
+.question-html-content h3 {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.question-html-content p {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.question-html-content span {
+  /* Ensure contrast even if inline style had dark text */
+  max-width: 100%;
+}
