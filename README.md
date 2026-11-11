@@ -83,7 +83,7 @@ cd <repository-name>
 
 ### Configure environment variables
 
-Copy the root `.env.example` to `Backend/.env` and `frontend/.env.local`. Fill in the backend values in `Backend/.env` and the Vite/Firebase values in `frontend/.env.local`. Do not commit either populated file.
+Copy `Backend/.env.example` to `Backend/.env` and `frontend/.env.example` to `frontend/.env.local`. Fill in each file's values locally. Do not commit populated env files. The root `.env.example` lists all supported variables together for reference.
 
 The backend requires a MongoDB connection string. Set `GEMINI_API_KEY` to enable AI reviews. The frontend Firebase variables are the Firebase web app configuration used by the client.
 
